@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -9,48 +8,41 @@
 
 int main(void)
 {
-	char *args[] = {NULL};
 	char buffer[BUFFER_SIZE];
 	pid_t child_pid;
 	int status;
 
 	while (1)
 	{
-		printf("simple_shell$ ");
-
-		if (fgets(buffer, BUFFER_SIZE, stdin) == NULL)
+		printf("#cisfun$ ");
+		if (!fgets(buffer, BUFFER_SIZE, stdin))
 		{
 			printf("\n");
 			break;
 		}
 
-		buffer[strcspn(buffer)] = '\0';
+		buffer[strcspn(buffer, "\n")] = 0;
 
-		if (strcmp(buffer, "exit") == 0)
-		{
-			break;
-		}
-		args[0] = buffer;
 		child_pid = fork();
 
 		if (child_pid == -1)
 		{
-			fprintf(stderr, "Fork error: %s\n", strerror(errno));
+			perror("Error forking");
 			exit(EXIT_FAILURE);
 		}
 
 		if (child_pid == 0)
 		{
-			if (execve(args[0], args, NULL) == -1)
+			if (execve(buffer, NULL, NULL) == -1)
 			{
-				fprintf(stderr, "Command execution error: %s\n", strerror(errno));
+				perror("Execution error");
+				exit(EXIT_FAILURE);
 			}
-			exit(EXIT_FAILURE);
-		}
-		else
+		} else
 		{
 			waitpid(child_pid, &status, 0);
 		}
 	}
 	return (EXIT_SUCCESS);
 }
+
